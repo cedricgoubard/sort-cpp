@@ -1,4 +1,4 @@
-#include "track.h"
+#include <sort_obj_track/track.h>
 
 
 Track::Track() : kf_(8, 4) {
@@ -96,6 +96,13 @@ cv::Rect Track::GetStateAsBbox() const {
     return ConvertStateToBbox(kf_.x_);
 }
 
+/**
+ * Returns the current bounding box estimate
+ * @return
+ */
+vision_msgs::Detection2D Track::GetStateAsROS2DDetection() const {
+    return ConvertStateToROS2DDetection(kf_.x_);
+}
 
 float Track::GetNIS() const {
     return kf_.NIS_;
@@ -136,4 +143,13 @@ cv::Rect Track::ConvertStateToBbox(const Eigen::VectorXd &state) const {
     auto tl_y = static_cast<int>(state[1] - height / 2.0);
     cv::Rect rect(cv::Point(tl_x, tl_y), cv::Size(width, height));
     return rect;
+}
+
+vision_msgs::Detection2D Track::ConvertStateToROS2DDetection(const Eigen::VectorXd &state) const {
+    vision_msgs::Detection2D detection;
+    detection.bbox.center.x = state[0];
+    detection.bbox.center.y = state[1];
+    detection.bbox.size_x = state[2];
+    detection.bbox.size_y = state[3];
+    return detection;
 }
