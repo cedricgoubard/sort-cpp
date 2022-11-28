@@ -50,6 +50,55 @@ Track::Track() : kf_(8, 4) {
             0, 0, 0,  10;
 }
 
+Track::Track(int id_, float score_) : kf_(8, 4), class_id_(id_), score_(score_) {
+
+    /*** Define constant velocity model ***/
+    // state - center_x, center_y, width, height, v_cx, v_cy, v_width, v_height
+    kf_.F_ <<
+           1, 0, 0, 0, 1, 0, 0, 0,
+            0, 1, 0, 0, 0, 1, 0, 0,
+            0, 0, 1, 0, 0, 0, 1, 0,
+            0, 0, 0, 1, 0, 0, 0, 1,
+            0, 0, 0, 0, 1, 0, 0, 0,
+            0, 0, 0, 0, 0, 1, 0, 0,
+            0, 0, 0, 0, 0, 0, 1, 0,
+            0, 0, 0, 0, 0, 0, 0, 1;
+
+    // Give high uncertainty to the unobservable initial velocities
+    kf_.P_ <<
+           10, 0, 0, 0, 0, 0, 0, 0,
+            0, 10, 0, 0, 0, 0, 0, 0,
+            0, 0, 10, 0, 0, 0, 0, 0,
+            0, 0, 0, 10, 0, 0, 0, 0,
+            0, 0, 0, 0, 10000, 0, 0, 0,
+            0, 0, 0, 0, 0, 10000, 0, 0,
+            0, 0, 0, 0, 0, 0, 10000, 0,
+            0, 0, 0, 0, 0, 0, 0, 10000;
+
+
+    kf_.H_ <<
+           1, 0, 0, 0, 0, 0, 0, 0,
+            0, 1, 0, 0, 0, 0, 0, 0,
+            0, 0, 1, 0, 0, 0, 0, 0,
+            0, 0, 0, 1, 0, 0, 0, 0;
+
+    kf_.Q_ <<
+           1, 0, 0, 0, 0, 0, 0, 0,
+            0, 1, 0, 0, 0, 0, 0, 0,
+            0, 0, 1, 0, 0, 0, 0, 0,
+            0, 0, 0, 1, 0, 0, 0, 0,
+            0, 0, 0, 0, 0.01, 0, 0, 0,
+            0, 0, 0, 0, 0, 0.01, 0, 0,
+            0, 0, 0, 0, 0, 0, 0.0001, 0,
+            0, 0, 0, 0, 0, 0, 0, 0.0001;
+
+    kf_.R_ <<
+           1, 0, 0,  0,
+            0, 1, 0,  0,
+            0, 0, 10, 0,
+            0, 0, 0,  10;
+}
+
 
 // Get predicted locations from existing trackers
 // dt is time elapsed between the current and previous measurements
@@ -151,5 +200,9 @@ vision_msgs::Detection2D Track::ConvertStateToROS2DDetection(const Eigen::Vector
     detection.bbox.center.y = state[1];
     detection.bbox.size_x = state[2];
     detection.bbox.size_y = state[3];
+    vision_msgs::ObjectHypothesisWithPose ob = vision_msgs::ObjectHypothesisWithPose();
+    ob.id = class_id_;
+    ob.score = score_;
+    detection.results.push_back(ob);
     return detection;
 }

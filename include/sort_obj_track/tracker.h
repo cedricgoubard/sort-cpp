@@ -7,6 +7,12 @@
 #include <sort_obj_track/munkres.h>
 #include <sort_obj_track/utils.h>
 
+struct  RectWithClass {
+    cv::Rect rect;
+    int class_id;
+    float score;
+};
+
 class Tracker {
 public:
     Tracker();
@@ -27,13 +33,13 @@ public:
  * @param unmatched_det
  * @param iou_threshold
  */
-    static void AssociateDetectionsToTrackers(const std::vector<cv::Rect>& detection,
+    static void AssociateDetectionsToTrackers(const std::vector<RectWithClass>& detection,
                                        std::map<int, Track>& tracks,
-                                       std::map<int, cv::Rect>& matched,
-                                       std::vector<cv::Rect>& unmatched_det,
+                                       std::map<int, RectWithClass>& matched,
+                                       std::vector<RectWithClass>& unmatched_det,
                                        float iou_threshold = 0.3);
 
-    void Run(const std::vector<cv::Rect>& detections);
+    void Run(const std::vector<RectWithClass>& detections);
 
     std::map<int, Track> GetTracks();
 

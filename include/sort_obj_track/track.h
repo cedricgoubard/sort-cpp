@@ -1,13 +1,17 @@
 #pragma once
 
 #include <vision_msgs/Detection2D.h>
+#include <vision_msgs/ObjectHypothesisWithPose.h>
 #include <opencv2/core.hpp>
 #include <sort_obj_track/kalman_filter.h>
 
 class Track {
 public:
+    int class_id_;
+    float score_;
     // Constructor
     Track();
+    Track(int id_, float score_);
 
     // Destructor
     ~Track() = default;
@@ -27,4 +31,5 @@ private:
     vision_msgs::Detection2D ConvertStateToROS2DDetection(const Eigen::VectorXd &state) const;
 
     KalmanFilter kf_;
+    
 };

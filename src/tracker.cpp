@@ -79,10 +79,10 @@ void Tracker::HungarianMatching(const std::vector<std::vector<float>>& iou_matri
 }
 
 
-void Tracker::AssociateDetectionsToTrackers(const std::vector<cv::Rect>& detection,
+void Tracker::AssociateDetectionsToTrackers(const std::vector<RectWithClass>& detection,
                                             std::map<int, Track>& tracks,
-                                            std::map<int, cv::Rect>& matched,
-                                            std::vector<cv::Rect>& unmatched_det,
+                                            std::map<int, RectWithClass>& matched,
+                                            std::vector<RectWithClass>& unmatched_det,
                                             float iou_threshold) {
 
     // Set all detection as unmatched if no tracks existing
@@ -106,7 +106,7 @@ void Tracker::AssociateDetectionsToTrackers(const std::vector<cv::Rect>& detecti
     for (size_t i = 0; i < detection.size(); i++) {
         size_t j = 0;
         for (const auto& trk : tracks) {
-            iou_matrix[i][j] = CalculateIou(detection[i], trk.second);
+            iou_matrix[i][j] = CalculateIou(detection[i].rect, trk.second);
             j++;
         }
     }
@@ -137,7 +137,7 @@ void Tracker::AssociateDetectionsToTrackers(const std::vector<cv::Rect>& detecti
 }
 
 
-void Tracker::Run(const std::vector<cv::Rect>& detections) {
+void Tracker::Run(const std::vector<RectWithClass>& detections) {
 
     /*** Predict internal tracks from previous frame ***/
     for (auto &track : tracks_) {
@@ -145,9 +145,9 @@ void Tracker::Run(const std::vector<cv::Rect>& detections) {
     }
 
     // Hash-map between track ID and associated detection bounding box
-    std::map<int, cv::Rect> matched;
+    std::map<int, RectWithClass> matched;
     // vector of unassociated detections
-    std::vector<cv::Rect> unmatched_det;
+    std::vector<RectWithClass> unmatched_det;
 
     // return values - matched, unmatched_det
     if (!detections.empty()) {
@@ -156,15 +156,17 @@ void Tracker::Run(const std::vector<cv::Rect>& detections) {
     /*** Update tracks with associated bbox ***/
     for (const auto &match : matched) {
         const auto &ID = match.first;
-        tracks_[ID].Update(match.second);
+        tracks_[ID].Update(match.second.rect);
     }
 
     /*** Create new tracks for unmatched detections ***/
     for (const auto &det : unmatched_det) {
         Track tracker;
-        tracker.Init(det);
+        tracker.Init(det.rect);
         // Create new track and generate new ID
         tracks_[id_++] = tracker;
+        tracks_[id_-1].class_id_ = det.class_id;
+        tracks_[id_-1].score_ = det.score;
     }
 
     /*** Delete lose tracked tracks ***/
