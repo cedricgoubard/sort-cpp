@@ -20,6 +20,9 @@ float Tracker::CalculateIou(const cv::Rect& det, const Track& track) {
     float trk_area = trk.area();
     auto intersection_area = w * h;
     float union_area = det_area + trk_area - intersection_area;
+    if (intersection_area == 0) {
+        return 0;
+    }
     auto iou = intersection_area / union_area;
     return iou;
 }
@@ -150,7 +153,6 @@ void Tracker::Run(const std::vector<cv::Rect>& detections) {
     if (!detections.empty()) {
         AssociateDetectionsToTrackers(detections, tracks_, matched, unmatched_det);
     }
-
     /*** Update tracks with associated bbox ***/
     for (const auto &match : matched) {
         const auto &ID = match.first;
