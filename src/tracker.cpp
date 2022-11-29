@@ -1,10 +1,6 @@
 #include <sort_obj_track/tracker.h>
 
 
-Tracker::Tracker() {
-    id_ = 0;
-}
-
 float Tracker::CalculateIou(const cv::Rect& det, const Track& track) {
     auto trk = track.GetStateAsBbox();
     // get min/max points
@@ -110,10 +106,8 @@ void Tracker::AssociateDetectionsToTrackers(const std::vector<RectWithClass>& de
             j++;
         }
     }
-
     // Find association
     HungarianMatching(iou_matrix, detection.size(), tracks.size(), association);
-
     for (size_t i = 0; i < detection.size(); i++) {
         bool matched_flag = false;
         size_t j = 0;
@@ -143,7 +137,6 @@ void Tracker::Run(const std::vector<RectWithClass>& detections) {
     for (auto &track : tracks_) {
         track.second.Predict();
     }
-
     // Hash-map between track ID and associated detection bounding box
     std::map<int, RectWithClass> matched;
     // vector of unassociated detections
@@ -156,19 +149,18 @@ void Tracker::Run(const std::vector<RectWithClass>& detections) {
     /*** Update tracks with associated bbox ***/
     for (const auto &match : matched) {
         const auto &ID = match.first;
-        tracks_[ID].Update(match.second.rect);
+        tracks_.at(ID).Update(match.second);
     }
 
     /*** Create new tracks for unmatched detections ***/
     for (const auto &det : unmatched_det) {
-        Track tracker;
+        Track tracker(det.class_id, det.score, n_classes_, mem_size_);
         tracker.Init(det.rect);
         // Create new track and generate new ID
-        tracks_[id_++] = tracker;
-        tracks_[id_-1].class_id_ = det.class_id;
-        tracks_[id_-1].score_ = det.score;
+        tracks_.insert({id_++, tracker});
+        // tracks_[id_-1].class_id_ = det.class_id;
+        // tracks_[id_-1].score_ = det.score;
     }
-
     /*** Delete lose tracked tracks ***/
     for (auto it = tracks_.begin(); it != tracks_.end();) {
         if (it->second.coast_cycles_ > kMaxCoastCycles) {

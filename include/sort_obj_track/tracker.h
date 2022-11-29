@@ -7,15 +7,10 @@
 #include <sort_obj_track/munkres.h>
 #include <sort_obj_track/utils.h>
 
-struct  RectWithClass {
-    cv::Rect rect;
-    int class_id;
-    float score;
-};
 
 class Tracker {
 public:
-    Tracker();
+    Tracker(int n_classes, int m_size): id_(0), n_classes_(n_classes), mem_size_(m_size){}; 
     ~Tracker() = default;
 
     static float CalculateIou(const cv::Rect& det, const Track& track);
@@ -49,4 +44,6 @@ private:
 
     // Assigned ID for each bounding box
     int id_;
+    int n_classes_;
+    int mem_size_;
 };
