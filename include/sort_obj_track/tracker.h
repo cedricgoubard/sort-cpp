@@ -10,7 +10,7 @@
 
 class Tracker {
 public:
-    Tracker(int n_classes, int m_size): id_(0), n_classes_(n_classes), mem_size_(m_size){}; 
+    Tracker(int n_classes, int class_mem_size, int bb_mem_size): id_(0), n_classes_(n_classes), class_mem_size_(class_mem_size), bb_mem_size_(bb_mem_size){}; 
     ~Tracker() = default;
 
     static float CalculateIou(const cv::Rect& det, const Track& track);
@@ -45,5 +45,6 @@ private:
     // Assigned ID for each bounding box
     int id_;
     int n_classes_;
-    int mem_size_;
+    int class_mem_size_;
+    int bb_mem_size_;
 };

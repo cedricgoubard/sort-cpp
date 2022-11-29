@@ -154,7 +154,7 @@ void Tracker::Run(const std::vector<RectWithClass>& detections) {
 
     /*** Create new tracks for unmatched detections ***/
     for (const auto &det : unmatched_det) {
-        Track tracker(det.class_id, det.score, n_classes_, mem_size_);
+        Track tracker(det.class_id, det.score, n_classes_, class_mem_size_);
         tracker.Init(det.rect);
         // Create new track and generate new ID
         tracks_.insert({id_++, tracker});
@@ -163,7 +163,7 @@ void Tracker::Run(const std::vector<RectWithClass>& detections) {
     }
     /*** Delete lose tracked tracks ***/
     for (auto it = tracks_.begin(); it != tracks_.end();) {
-        if (it->second.coast_cycles_ > kMaxCoastCycles) {
+        if (it->second.coast_cycles_ > this->bb_mem_size_) {
             it = tracks_.erase(it);
         } else {
             it++;
